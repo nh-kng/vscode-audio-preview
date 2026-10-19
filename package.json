@@ -1,12 +1,14 @@
 {
-  "name": "wav-preview",
-  "displayName": "Audio Preview",
-  "description": "play & preview audio file in VS Code. (wav,mp3,ogg,aac,flac,...etc)",
+  "name": "audio-waveform-preview",
+  "displayName": "Audio Waveform Preview",
+  "description": "Play and preview audio files in VS Code, including WAV, MP3, OGG, AAC, FLAC, M4A, and more.",
   "version": "2.7.0",
   "engines": {
     "vscode": "^1.59.1"
   },
   "publisher": "nh-kng",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://github.com/nh-kng/vscode-audio-preview#readme",
   "categories": [
     "Other"
   ],
@@ -97,9 +99,13 @@
   "scripts": {
     "decoder:build": "node scripts/build-decoder.js",
     "decoder:check": "node scripts/build-decoder.js --check",
-    "vscode:prepublish": "npm run decoder:check && webpack --mode production --devtool hidden-source-map",
-    "webpack": "webpack --mode development",
-    "webpack-dev": "webpack --mode development --watch",
+    "compile": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
+    "package": "npm run decoder:check && webpack --mode production --devtool hidden-source-map",
+    "vscode:prepublish": "npm run package",
+    "package:vsix": "vsce package",
+    "webpack": "npm run compile",
+    "webpack-dev": "npm run watch",
     "test": "jest",
     "lint": "eslint \"src/**/*.{js,ts}\"",
     "format": "prettier --write \"src/**/*.{js,ts,css}\"",
@@ -113,6 +119,7 @@
     "@types/vscode": "^1.59.1",
     "@typescript-eslint/eslint-plugin": "^7.8.0",
     "@typescript-eslint/parser": "^7.8.0",
+    "@vscode/vsce": "^4.0.0",
     "css-loader": "^7.1.1",
     "eslint": "^8.2.0",
     "eslint-config-prettier": "^9.1.0",

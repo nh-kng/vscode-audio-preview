@@ -5,7 +5,7 @@ You can also check waveform and spectrogram.
 
 Supported Audio Files: `wav`, `mp3`, `aac`, `ogg`, `flac`, `opus`, `m4a`, `sph` ... etc.
 
-Available on Marketplace: https://marketplace.visualstudio.com/items?itemName=nh-kng.wav-preview
+Available on Marketplace: https://marketplace.visualstudio.com/items?itemName=nh-kng.audio-waveform-preview
 Repository: https://github.com/nh-kng/vscode-audio-preview
 
 Forked from [sukumo28/vscode-audio-preview](https://github.com/sukumo28/vscode-audio-preview).
@@ -72,6 +72,10 @@ To check all items, please refer to [here](https://github.com/nh-kng/vscode-audi
 
 ## Development
 
+The build and packaging scripts require [Node.js 22 or newer](https://nodejs.org/).
+The decoder build additionally requires Docker Desktop (or another Docker
+installation that can run `linux/amd64` images).
+
 ### Contributions
 
 Feel free to report Isuues and send Pull Requests on github.
@@ -86,9 +90,9 @@ VSCode's DevTools can be opened in the following ways.
 ### Build
 
 - Clone this repo
-- Install Dependencies: `npm install`
+- Install dependencies from the lockfile: `npm ci`
 - Build the decoder and its Docker image: `npm run decoder:build`
-- Run the production webpack/package build: `npm run vscode:prepublish`
+- Build development bundles: `npm run compile`
 - Run Extension: f5
 
 The decoder uses the pinned `emscripten/emsdk:3.1.17` image, which runs as
@@ -100,8 +104,31 @@ bounded. If Docker Desktop still runs out of memory, retry with one job:
 DECODER_BUILD_JOBS=1 npm run decoder:build
 ```
 
-`npm run vscode:prepublish` checks for `src/decoder/wasm/decoder.js` before
-starting webpack and reports the decoder command when it has not been built.
+`npm run package` checks for `src/decoder/wasm/decoder.js` before starting the
+production webpack build. The `vscode:prepublish` lifecycle script calls this
+same command automatically when `vsce` packages the extension.
+
+### Package and publish
+
+Create an installable VSIX with the official VS Code Extension Manager:
+
+```sh
+npm run package:vsix
+code --install-extension audio-waveform-preview-2.7.0.vsix
+```
+
+The VSIX filename includes the version from `package.json`. Before updating an
+existing Marketplace listing, increment that version and keep the lockfile in
+sync, for example with `npm version patch --no-git-tag-version`. The
+`publisher` value must belong to the Marketplace account doing the release;
+forks should replace it and update the repository, issue, homepage, and README
+links to match their own project.
+
+The first Marketplace release can be uploaded from the [publisher management
+page](https://marketplace.visualstudio.com/manage/publishers/). For automated
+publishing, follow the [official secure publishing authorization guide](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#secure-automated-publishing-to-visual-studio-marketplace)
+and use Microsoft Entra ID credentials. Global Azure DevOps PATs are scheduled
+for retirement on December 1, 2026.
 
 ### Test
 

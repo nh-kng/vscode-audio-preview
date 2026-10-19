@@ -11,22 +11,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout User's PR
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v2
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v7
         with:
-          node-version: 18.x
+          node-version: 22.x
       - name: Install dependencies
-        run: npm install
-      # The tests do not depend on the decoder, so there is no need to build the decoder
+        run: npm ci
       - name: Lint
         run: npm run lint-check
       - name: Format
         run: npm run format-check
       - name: Test
         run: npm run test
+      # Packaging embeds the generated decoder, so a clean checkout must build it first.
+      - name: Build decoder
+        run: npm run decoder:build
+      - name: Package VSIX
+        run: npm run package:vsix
 
   remove-label:
     needs: check
@@ -37,7 +41,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Remove run-check label
-        uses: actions/github-script@v5
+        uses: actions/github-script@v9
         with:
           script: |
             const issue_number = context.issue.number;
@@ -59,7 +63,7 @@ jobs:
     steps:
       - name: If CI fails, notify the user who created the PR
         if: ${{ needs.check.result == 'failure' }}
-        uses: actions/github-script@v5
+        uses: actions/github-script@v9
         with:
           script: |
             const issue_number = context.issue.number;
@@ -86,7 +90,7 @@ jobs:
     steps:
       - name: If the CI is successful, notify the user who created the PR.
         if: ${{ needs.check.result == 'success' }}
-        uses: actions/github-script@v5
+        uses: actions/github-script@v9
         with:
           script: |
             const issue_number = context.issue.number;

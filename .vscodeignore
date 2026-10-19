@@ -17,5 +17,6 @@ vsc-extension-quickstart.md
 **/*.ts
 **/*.wav
 node_modules
-webpack.config.json
+package-lock.json
+webpack.config.js
 .DS_Store
