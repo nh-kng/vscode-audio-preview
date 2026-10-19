@@ -61,4 +61,21 @@ describe("playerService", () => {
 
     expect(detail.value).toBe(false);
   });
+
+  test("seekBy clamps to the audio duration and preserves paused state", () => {
+    playerService.seekBy(5);
+    expect(playerService.currentSec).toBe(5);
+    expect(playerService.isPlaying).toBe(false);
+
+    playerService.seekBy(-10);
+    expect(playerService.currentSec).toBe(0);
+  });
+
+  test("forward seek while playing stops at the duration instead of restarting", () => {
+    playerService.onSeekbarInput(95);
+    playerService.play();
+    playerService.seekBy(5);
+    expect(playerService.currentSec).toBe(10);
+    expect(playerService.isPlaying).toBe(false);
+  });
 });

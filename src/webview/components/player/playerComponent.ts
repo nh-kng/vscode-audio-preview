@@ -3,147 +3,281 @@ import { EventType } from "../../events";
 import Component from "../../component";
 import PlayerService from "../../services/playerService";
 import PlayerSettingsService from "../../services/playerSettingsService";
+import { iconMarkup, setIcon } from "../../icons";
+
+export const skipSeconds = 5;
+
+export function formatTime(seconds: number, duration = 0): string {
+  const safe = Number.isFinite(seconds) ? Math.max(0, seconds) : 0;
+  const total = Math.floor(safe);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const secs = String(total % 60).padStart(2, "0");
+  if (duration >= 3600 || hours > 0) {
+    return (
+      String(hours).padStart(2, "0") +
+      ":" +
+      String(minutes).padStart(2, "0") +
+      ":" +
+      secs
+    );
+  }
+  return String(minutes).padStart(2, "0") + ":" + secs;
+}
+
+function updateRangeProgress(input: HTMLInputElement): void {
+  const min = Number(input.min);
+  const max = Number(input.max);
+  const value = Number(input.value);
+  const progress =
+    Number.isFinite(min) && Number.isFinite(max) && max > min
+      ? Math.min(100, Math.max(0, ((value - min) / (max - min)) * 100))
+      : 0;
+  input.style.setProperty("--range-progress", progress + "%");
+}
 
 export default class PlayerComponent extends Component {
-  private _componentRoot: HTMLElement;
+  private _root: HTMLElement;
   private _playButton: HTMLButtonElement;
-  private _volumeBar: HTMLInputElement;
-  private _playerService: PlayerService;
-  private _playerSettingsService: PlayerSettingsService;
+  private _service: PlayerService;
+  private _settings: PlayerSettingsService;
 
   constructor(
-    componentRootID: string,
+    selector: string,
     playerService: PlayerService,
     playerSettingsService: PlayerSettingsService,
+    filename?: string,
   ) {
     super();
-    this._playerService = playerService;
-    this._playerSettingsService = playerSettingsService;
-
-    // init base html
-    this._componentRoot = document.querySelector(componentRootID);
-
-    const volumeBar = this._playerSettingsService.volumeUnitDb
-      ? `<div class="volumeText">volume 0.0 dB</div>
-             <input type="range" class="volumeBar" value="0" min="-80" max="0" step="0.5">`
-      : `<div class="volumeText">volume 100</div>
-             <input type="range" class="volumeBar" value="100">`;
-
-    this._componentRoot.innerHTML = `
-      <div class="playerComponent">
-        <button class="playButton">play</button>
-
-        ${volumeBar}
-                    
-        <div class="seekPosText">position 0.000 s</div>
-        <div class="seekBarBox">
-            <input type="range" class="seekBar" value="0" />
-            <input type="range" class="userInputSeekBar inputSeekBar" value="0" />
-        </div>
-      </div>
-    `;
-
-    // init main seekbar event
-    // To avoid inconvenience when the timing of user input overlaps with the change in value over time,
-    // we separate the InputElement for display and the InputElement that actually accepts user input.
-    const userinputSeekbar = <HTMLInputElement>(
-      this._componentRoot.querySelector(".userInputSeekBar")
+    this._root = document.querySelector(selector);
+    this._service = playerService;
+    this._settings = playerSettingsService;
+    this._root.innerHTML =
+      '<section class="playerComponent" aria-label="Audio playback">' +
+      '<div class="playerHeader"><div class="playbackControls" aria-label="Playback controls">' +
+      '<button type="button" class="seekButton seekButton--backward" aria-label="Back 5 seconds" title="Back 5 seconds">' +
+      iconMarkup("debug-step-back", "controlIcon") +
+      "</button>" +
+      '<button type="button" class="playButton" aria-label="Play audio" aria-pressed="false">' +
+      iconMarkup("play", "playIcon") +
+      "</button>" +
+      '<button type="button" class="seekButton seekButton--forward" aria-label="Forward 5 seconds" title="Forward 5 seconds">' +
+      iconMarkup("debug-step-over", "controlIcon") +
+      "</button></div>" +
+      '<div class="seekArea"><div class="seekControl"><label class="srOnly" for="seekBar">Seek position</label>' +
+      '<input type="range" id="seekBar" class="seekBar userInputSeekBar inputSeekBar" value="0" min="0" max="100" step="0.1" aria-label="Seek position, percentage through audio"></div>' +
+      '<div class="seekLabels" aria-label="Playback time"><span class="seekPosText" role="status" aria-live="polite">00:00</span><span aria-hidden="true"> / </span><span class="durationText"></span></div></div>' +
+      '<div class="volumeControl"><button type="button" class="volumeButton" aria-label="Volume" aria-controls="volumePopover" aria-expanded="false" aria-haspopup="dialog" title="Volume">' +
+      iconMarkup("unmute", "volumeIcon") +
+      '</button><div id="volumePopover" class="volumePopover" role="dialog" aria-label="Volume" hidden>' +
+      '<label class="volumeLabel" for="volumeBar"><span class="volumeMeta"><span class="volumeText">Volume</span><span class="volumeIcon volumeIcon--popover" aria-hidden="true"></span></span>' +
+      '<input id="volumeBar" class="volumeBar" type="range" aria-label="Volume"></label></div></div></div></section>';
+    const playback = this._root.querySelector(
+      ".playerComponent",
+    ) as HTMLElement;
+    if (filename?.trim()) {
+      playback.setAttribute("aria-label", filename.trim());
+    }
+    const seek = this._root.querySelector(".seekBar") as HTMLInputElement;
+    const current = this._root.querySelector(".seekPosText") as HTMLElement;
+    const duration = this._root.querySelector(".durationText") as HTMLElement;
+    current.textContent = formatTime(0, this._service.duration);
+    duration.textContent = formatTime(
+      this._service.duration,
+      this._service.duration,
     );
-    this._addEventlistener(userinputSeekbar, EventType.CHANGE, () => {
-      this._playerService.onSeekbarInput(Number(userinputSeekbar.value));
-      // We reset the value of the input element for user input to 100 each time,
-      // because it does not respond when the user inputs exactly the same value as the previous one.
-      // Since 100 is the value at the end of playback, there is no problem if it does not respond.
-      userinputSeekbar.value = "100";
+    let seeking = false;
+    this._addEventlistener(seek, EventType.INPUT, () => {
+      seeking = true;
+      updateRangeProgress(seek);
+      current.textContent = formatTime(
+        (Number(seek.value) / 100) * this._service.duration,
+        this._service.duration,
+      );
     });
-    const visibleSeekbar = <HTMLInputElement>(
-      this._componentRoot.querySelector(".seekBar")
-    );
-    const seekPosText = <HTMLInputElement>(
-      this._componentRoot.querySelector(".seekPosText")
-    );
+    this._addEventlistener(seek, EventType.CHANGE, () => {
+      seeking = false;
+      this._service.onSeekbarInput(Number(seek.value));
+    });
     this._addEventlistener(
-      this._playerService,
+      this._service,
       EventType.UPDATE_SEEKBAR,
       (e: CustomEventInit) => {
-        visibleSeekbar.value = e.detail.value;
-        seekPosText.textContent =
-          "position " + Number(e.detail.pos).toFixed(3) + " s";
+        if (!seeking && Number.isFinite(Number(e.detail?.value))) {
+          seek.value = String(e.detail.value);
+          updateRangeProgress(seek);
+        }
+        if (!seeking && Number.isFinite(Number(e.detail?.pos))) {
+          current.textContent = formatTime(
+            Number(e.detail.pos),
+            this._service.duration,
+          );
+        }
       },
     );
+    updateRangeProgress(seek);
 
-    // init volumebar
-    this._volumeBar = <HTMLInputElement>(
-      this._componentRoot.querySelector(".volumeBar")
-    );
-    const volumeText = <HTMLInputElement>(
-      this._componentRoot.querySelector(".volumeText")
-    );
+    const volumeButton = this._root.querySelector(
+      ".volumeButton",
+    ) as HTMLButtonElement;
+    const volumeControl = this._root.querySelector(
+      ".volumeControl",
+    ) as HTMLElement;
+    const volumePopover = this._root.querySelector(
+      ".volumePopover",
+    ) as HTMLElement;
+    const volumeBar = this._root.querySelector(
+      ".volumeBar",
+    ) as HTMLInputElement;
+    const volumeText = this._root.querySelector(".volumeText") as HTMLElement;
+    const volumeIcons = this._root.querySelectorAll(".volumeIcon");
+    if (this._settings.volumeUnitDb) {
+      volumeBar.min = "-80";
+      volumeBar.max = "0";
+      volumeBar.step = "0.5";
+      volumeBar.value = String(this._settings.initialVolumeDb);
+    } else {
+      volumeBar.min = "0";
+      volumeBar.max = "100";
+      volumeBar.step = "1";
+      volumeBar.value = String(this._settings.initialVolume * 100);
+    }
     const updateVolume = () => {
-      if (this._playerSettingsService.volumeUnitDb) {
-        // convert dB setting to linear gain
-        // -80 dB is treated as mute
-        const voldb = Number(this._volumeBar.value);
-        const vollin = voldb === -80 ? 0 : Math.pow(10, voldb / 20);
-        this._playerService.volume = vollin;
+      let icon: "mute" | "unmute";
+      if (this._settings.volumeUnitDb) {
+        const db = Number(volumeBar.value);
+        const linear = db === -80 ? 0 : Math.pow(10, db / 20);
+        this._service.volume = linear;
         volumeText.textContent =
-          "volume " + (vollin === 0 ? "muted" : voldb.toFixed(1) + " dB");
+          "Volume " +
+          Math.round(linear * 100) +
+          "% · " +
+          (linear === 0 ? "muted" : db.toFixed(1) + " dB");
+        icon = linear === 0 ? "mute" : "unmute";
       } else {
-        // convert seekbar value(0~100) to volume(0~1)
-        this._playerService.volume = Number(this._volumeBar.value) / 100;
-        volumeText.textContent = "volume " + this._volumeBar.value;
+        const percent = Number(volumeBar.value);
+        this._service.volume = percent / 100;
+        volumeText.textContent = "Volume " + percent + "%";
+        icon = percent === 0 ? "mute" : "unmute";
       }
+      volumeIcons.forEach((element) => setIcon(element as HTMLElement, icon));
+      volumeButton.setAttribute("aria-label", volumeText.textContent);
+      volumeButton.setAttribute("title", volumeText.textContent);
+      updateRangeProgress(volumeBar);
     };
-    this._addEventlistener(this._volumeBar, EventType.INPUT, updateVolume);
-    this._volumeBar.value = String(
-      this._playerSettingsService.volumeUnitDb
-        ? this._playerSettingsService.initialVolumeDb
-        : this._playerSettingsService.initialVolume,
-    );
+    this._addEventlistener(volumeBar, EventType.INPUT, updateVolume);
     updateVolume();
 
-    // init play button
-    this._playButton = <HTMLButtonElement>(
-      this._componentRoot.querySelector(".playButton")
-    );
-    this._addEventlistener(this._playButton, EventType.CLICK, () => {
-      if (this._playerService.isPlaying) {
-        this._playerService.pause();
-      } else {
-        this._playerService.play();
+    const setVolumePopoverOpen = (open: boolean, focusSlider = false) => {
+      volumePopover.hidden = !open;
+      volumeButton.setAttribute("aria-expanded", String(open));
+      if (open && focusSlider) {
+        volumeBar.focus();
       }
+    };
+    this._addEventlistener(volumeButton, EventType.CLICK, () => {
+      setVolumePopoverOpen(volumePopover.hidden, true);
     });
-    this._playButton.textContent = "play";
-    this._playButton.style.display = "block";
+    const closeVolumePopoverOutside = (event: Event) => {
+      const target = event.target as Node | null;
+      if (target && !volumeControl.contains(target)) {
+        setVolumePopoverOpen(false);
+      }
+    };
     this._addEventlistener(
-      this._playerService,
-      EventType.UPDATE_IS_PLAYING,
-      () => {
-        if (this._playerService.isPlaying) {
-          this._playButton.textContent = "pause";
-        } else {
-          this._playButton.textContent = "play";
+      document,
+      EventType.MOUSE_DOWN,
+      closeVolumePopoverOutside,
+    );
+    this._addEventlistener(
+      document,
+      EventType.CLICK,
+      closeVolumePopoverOutside,
+    );
+    this._addEventlistener(
+      window,
+      EventType.KEY_DOWN,
+      (event: KeyboardEvent) => {
+        if (event.key === "Escape" && !volumePopover.hidden) {
+          event.preventDefault();
+          setVolumePopoverOpen(false);
+          volumeButton.focus();
         }
       },
     );
 
-    // register keyboard shortcuts
-    // don't use command.register at audioPreviewEditorProvider.openCustomDocument due to command confliction
-    if (this._playerSettingsService.enableSpacekeyPlay) {
-      this._addEventlistener(window, EventType.KEY_DOWN, (e: KeyboardEvent) => {
-        if (e.isComposing || e.code !== "Space") {
+    this._playButton = this._root.querySelector(".playButton");
+    const updateButton = () => {
+      const playing = this._service.isPlaying;
+      setIcon(
+        this._playButton.querySelector(".playIcon") as HTMLElement,
+        playing ? "debug-pause" : "play",
+      );
+      this._playButton.setAttribute(
+        "aria-label",
+        playing ? "Pause audio" : "Play audio",
+      );
+      this._playButton.setAttribute(
+        "title",
+        playing ? "Pause audio" : "Play audio",
+      );
+      this._playButton.setAttribute("aria-pressed", String(playing));
+      this._playButton.classList.toggle("isPlaying", playing);
+    };
+    this._addEventlistener(this._playButton, EventType.CLICK, () =>
+      playingToggle(this._service),
+    );
+    this._addEventlistener(
+      this._service,
+      EventType.UPDATE_IS_PLAYING,
+      updateButton,
+    );
+    updateButton();
+    this._addEventlistener(
+      this._root.querySelector(".seekButton--backward"),
+      EventType.CLICK,
+      () => this._service.seekBy(-skipSeconds),
+    );
+    this._addEventlistener(
+      this._root.querySelector(".seekButton--forward"),
+      EventType.CLICK,
+      () => this._service.seekBy(skipSeconds),
+    );
+    this._addEventlistener(
+      window,
+      EventType.KEY_DOWN,
+      (event: KeyboardEvent) => {
+        if (!this._settings.enableSpacekeyPlay) {
           return;
         }
-        e.preventDefault();
+        const target = event.target as HTMLElement | null;
+        if (
+          event.isComposing ||
+          event.code !== "Space" ||
+          target?.closest?.(
+            "button, a, input, textarea, select, summary, [contenteditable]",
+          )
+        ) {
+          return;
+        }
+        event.preventDefault();
         this._playButton.click();
-      });
-    }
+      },
+    );
   }
 
   public dispose() {
-    if (this._playerService.isPlaying) {
-      this._playerService.pause();
+    if (this._service.isPlaying) {
+      this._service.pause();
     }
     super.dispose();
+  }
+}
+
+function playingToggle(service: PlayerService) {
+  if (service.isPlaying) {
+    service.pause();
+  } else {
+    service.play();
   }
 }

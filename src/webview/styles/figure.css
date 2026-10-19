@@ -1,8 +1,11 @@
 .canvasBox {
   position: relative;
   padding: 0;
-  margin-bottom: 5px;
-  border: 1px solid var(--vscode-foreground);
+  margin-bottom: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--vscode-editor-background);
 }
 
 .mainCanvas {

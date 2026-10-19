@@ -69,7 +69,15 @@ describe("analyserComponent", () => {
   });
 
   test("analyzer should have analyze-button", () => {
-    expect(document.querySelector(".analyzeButton")).toBeTruthy();
+    const analyzeButton = document.querySelector(".analyzeButton");
+    expect(analyzeButton).toBeTruthy();
+    expect((analyzeButton as HTMLElement).style.display).toBe("");
+    expect(
+      document.querySelector(".analyzerEmptyState")?.textContent,
+    ).toContain("No analysis yet");
+    expect(
+      document.querySelector(".analyzerEmptyState")?.textContent,
+    ).toContain("Analyze this audio to view its waveform and spectrogram.");
   });
 
   test("figures in analyze-result-box should be created after analyze", () => {
@@ -79,11 +87,122 @@ describe("analyserComponent", () => {
       ?.querySelectorAll("canvas");
     // figures: waveform+axis and spectrogram+axis for each channels
     expect(figures.length).toBe(audioBuffer.numberOfChannels * 4);
+    expect(
+      document.querySelector(".analyzerEmptyState")?.getAttribute("style"),
+    ).toContain("display: none");
+    expect(document.querySelectorAll(".figureLabel")).toHaveLength(
+      audioBuffer.numberOfChannels * 2,
+    );
+    expect(
+      (document.querySelector(".analyzeButton") as HTMLElement).style.display,
+    ).toBe("none");
   });
 
   test("seek-bar on the figures should be created after analyze", () => {
     expect(document.querySelector(".visibleBar")).toBeTruthy();
     expect(document.querySelector(".userInputDiv")).toBeTruthy();
+  });
+
+  test("theme changes redraw the existing analysis without analyzing again", async () => {
+    const analyzeSpy = jest.spyOn(analyzeService, "analyze");
+    const spectrogramSpy = jest.spyOn(analyzeService, "getSpectrogram");
+    analyzeSpy.mockClear();
+    spectrogramSpy.mockClear();
+    analyzeSettingsService.minTime = 0.2;
+    analyzeSettingsService.maxTime = 0.8;
+    const previousClass = document.documentElement.getAttribute("class");
+    const previousCanvas = document.querySelector(".analyzeResultBox canvas");
+    document.documentElement.classList.add("audio-theme-test");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(analyzeSpy).not.toHaveBeenCalled();
+    expect(document.querySelector(".analyzeResultBox canvas")).not.toBe(
+      previousCanvas,
+    );
+    expect(spectrogramSpy).toHaveBeenCalled();
+    expect(
+      spectrogramSpy.mock.calls.every(
+        ([, settings]) =>
+          settings.minTime === 0 && settings.maxTime === audioBuffer.duration,
+      ),
+    ).toBe(true);
+    expect(document.querySelectorAll(".analyzeResultBox canvas")).toHaveLength(
+      audioBuffer.numberOfChannels * 4,
+    );
+    expect(
+      (document.querySelector(".analyzeButton") as HTMLElement).style.display,
+    ).toBe("inline-flex");
+    expect(document.querySelector(".analyzeButton span")?.textContent).toBe(
+      "Reanalyze",
+    );
+    expect(
+      document.querySelector(".analyzeButton")?.getAttribute("aria-label"),
+    ).toBe("Reanalyze");
+    if (previousClass === null) {
+      document.documentElement.removeAttribute("class");
+    } else {
+      document.documentElement.setAttribute("class", previousClass);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    analyzeSpy.mockRestore();
+    spectrogramSpy.mockRestore();
+  });
+
+  test("clicking Reanalyze uses current settings and clears the pending action", () => {
+    const analyzeSpy = jest.spyOn(analyzeService, "analyze");
+    analyzeSpy.mockClear();
+    const analyzeButton = document.querySelector(
+      ".analyzeButton",
+    ) as HTMLButtonElement;
+    analyzeButton.dispatchEvent(new Event("click"));
+    expect(analyzeSpy).toHaveBeenCalledTimes(1);
+    expect(analyzeButton.style.display).toBe("none");
+    expect(analyzeButton.querySelector("span")?.textContent).toBe(
+      "Analyze audio",
+    );
+    expect(document.querySelectorAll(".analyzeResultBox canvas")).toHaveLength(
+      audioBuffer.numberOfChannels * 4,
+    );
+    analyzeSpy.mockRestore();
+  });
+
+  test("effective analysis setting changes toggle Reanalyze", () => {
+    const analyzeButton = document.querySelector(
+      ".analyzeButton",
+    ) as HTMLButtonElement;
+    const currentMinTime = analyzeSettingsService.minTime;
+    analyzeSettingsService.minTime = currentMinTime;
+    expect(analyzeButton.style.display).toBe("none");
+
+    analyzeSettingsService.waveformVisible = false;
+    expect(analyzeButton.style.display).toBe("inline-flex");
+    expect(analyzeButton.querySelector("span")?.textContent).toBe("Reanalyze");
+
+    analyzeSettingsService.waveformVisible = true;
+    expect(analyzeButton.style.display).toBe("none");
+  });
+
+  test("analysis with both figures hidden shows a meaningful placeholder", () => {
+    const analyzeButton = document.querySelector(
+      ".analyzeButton",
+    ) as HTMLButtonElement;
+    analyzeSettingsService.waveformVisible = false;
+    analyzeSettingsService.spectrogramVisible = false;
+    analyzeButton.dispatchEvent(new Event("click"));
+
+    expect(document.querySelectorAll(".analyzeResultBox canvas")).toHaveLength(
+      0,
+    );
+    expect(
+      (document.querySelector(".analyzerEmptyState") as HTMLElement).style
+        .display,
+    ).toBe("block");
+    expect(
+      document.querySelector(".analyzerEmptyState")?.textContent,
+    ).toContain("No analysis results are visible");
+    expect(
+      document.querySelector(".analyzerEmptyState")?.textContent,
+    ).toContain("Enable Waveform or Spectrogram in Settings, then reanalyze.");
+    expect(analyzeButton.style.display).toBe("none");
   });
 });
 
@@ -143,6 +262,17 @@ describe("auto analyze", () => {
       document.querySelector(".analyzeResultBox")?.querySelectorAll("canvas")
         .length,
     ).toBe(8);
+    expect(
+      (document.querySelector(".analyzeResultBox") as HTMLElement).style
+        .display,
+    ).toBe("block");
+    expect(
+      (document.querySelector(".analyzerEmptyState") as HTMLElement).style
+        .display,
+    ).toBe("none");
+    expect(
+      (document.querySelector(".analyzeButton") as HTMLElement).style.display,
+    ).toBe("none");
     ac.dispose();
   });
 

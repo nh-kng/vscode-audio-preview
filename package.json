@@ -1,8 +1,8 @@
 {
   "name": "wav-preview",
-  "displayName": "audio-preview",
+  "displayName": "Audio Preview",
   "description": "play & preview audio file in VS Code. (wav,mp3,ogg,aac,flac,...etc)",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "engines": {
     "vscode": "^1.59.1"
   },
@@ -95,7 +95,9 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "webpack --mode production --devtool hidden-source-map",
+    "decoder:build": "node scripts/build-decoder.js",
+    "decoder:check": "node scripts/build-decoder.js --check",
+    "vscode:prepublish": "npm run decoder:check && webpack --mode production --devtool hidden-source-map",
     "webpack": "webpack --mode development",
     "webpack-dev": "webpack --mode development --watch",
     "test": "jest",

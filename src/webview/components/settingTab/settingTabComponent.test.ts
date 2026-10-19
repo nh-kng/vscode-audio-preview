@@ -1,7 +1,4 @@
-import {
-  MockAudioBuffer,
-  postMessageFromWebview,
-} from "../../../__mocks__/helper";
+import { MockAudioBuffer } from "../../../__mocks__/helper";
 import { AnalyzeDefault, PlayerDefault } from "../../../config";
 import AnalyzeService from "../../services/analyzeService";
 import AnalyzeSettingsService from "../../services/analyzeSettingsService";
@@ -37,7 +34,6 @@ describe("settingTabComponent", () => {
       analyzeService,
       analyzeSettingsService,
       audioBuffer,
-      postMessageFromWebview,
     );
   });
 
@@ -47,74 +43,50 @@ describe("settingTabComponent", () => {
     settingTabComponent.dispose();
   });
 
-  test("contents of tab is hide by default", () => {
-    const contents = document.querySelector(".settingTab__content").children;
-    for (const content of contents) {
-      expect((content as HTMLElement).style.display).toBe("none");
+  test("settings is a collapsed container with four collapsed sections", () => {
+    const settings = document.querySelector(
+      ".settingTab",
+    ) as HTMLDetailsElement;
+    expect(settings.open).toBe(false);
+    expect(
+      Array.from(document.querySelectorAll(".settingTab__section > summary")),
+    ).toHaveLength(4);
+    for (const section of document.querySelectorAll(".settingTab__section")) {
+      expect((section as HTMLDetailsElement).open).toBe(false);
     }
   });
 
-  test("click player-button should show player content", () => {
-    const playerButton = document.querySelector(
-      ".js-settingTabButton-player",
-    ) as HTMLButtonElement;
-    playerButton.click();
-    const playerContent = document.querySelector(
-      ".js-settingTabContent-player",
-    ) as HTMLElement;
-    expect(playerContent.style.display).toBe("block");
-  });
-
-  test("click analyze-button should show analyze content", () => {
-    const analyzeButton = document.querySelector(
-      ".js-settingTabButton-analyze",
-    ) as HTMLButtonElement;
-    analyzeButton.click();
-    const analyzeContent = document.querySelector(
-      ".js-settingTabContent-analyze",
-    ) as HTMLElement;
-    expect(analyzeContent.style.display).toBe("block");
-  });
-
-  test("click hide-button should hide all contents", () => {
-    const hideButton = document.querySelector(
-      ".js-settingTabButton-hide",
-    ) as HTMLButtonElement;
-    hideButton.click();
-    const contents = document.querySelector(".settingTab__content").children;
-    for (const content of contents) {
-      expect((content as HTMLElement).style.display).toBe("none");
+  test("fieldsets are placed in their matching accordion sections", () => {
+    const sections = [
+      [".js-settingTabContent-player", "Playback Filters", "playbackFilters"],
+      [".js-settingTabContent-analyze", "Analysis", "analysis"],
+      [".js-settingTabContent-waveform", "Waveform", "waveform"],
+      [".js-settingTabContent-spectrogram", "Spectrogram", "spectrogram"],
+    ] as const;
+    for (const [selector, summary, section] of sections) {
+      expect(
+        document
+          .querySelector(`${selector}`)
+          ?.parentElement?.querySelector(":scope > summary")?.textContent,
+      ).toBe(summary);
+      expect(
+        document.querySelector(
+          `${selector} fieldset[data-setting-section="${section}"]`,
+        ),
+      ).toBeTruthy();
     }
-  });
-
-  test("selected tab button should have active class", () => {
-    const analyzeButton = document.querySelector(
-      ".js-settingTabButton-analyze",
-    ) as HTMLButtonElement;
-    analyzeButton.click();
-    expect(analyzeButton.classList.contains("settingTab__button--active")).toBe(
-      true,
-    );
-    const hideButton = document.querySelector(
-      ".js-settingTabButton-hide",
-    ) as HTMLButtonElement;
-    hideButton.click();
-    expect(hideButton.classList.contains("settingTab__button--active")).toBe(
-      true,
-    );
-  });
-
-  test("active class should be removed when other tab button is clicked", () => {
-    const analyzeButton = document.querySelector(
-      ".js-settingTabButton-analyze",
-    ) as HTMLButtonElement;
-    analyzeButton.click();
-    const hideButton = document.querySelector(
-      ".js-settingTabButton-hide",
-    ) as HTMLButtonElement;
-    hideButton.click();
-    expect(analyzeButton.classList.contains("settingTab__button--active")).toBe(
-      false,
-    );
+    expect(document.querySelectorAll(".settingTab legend")).toHaveLength(0);
+    expect(
+      document.querySelector(
+        ".js-settingTabContent-waveform .js-analyzeSetting-waveformVisible",
+      ),
+    ).toBeTruthy();
+    expect(
+      document.querySelector(
+        ".js-settingTabContent-spectrogram .js-analyzeSetting-spectrogramVisible",
+      ),
+    ).toBeTruthy();
+    expect(document.querySelector(".js-settingTabButton-player")).toBeNull();
+    expect(document.querySelector(".js-settingTabContent-easyCut")).toBeNull();
   });
 });

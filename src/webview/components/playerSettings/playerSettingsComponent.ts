@@ -25,18 +25,30 @@ export default class PlayerSettingsComponent extends Component {
 
     this._componentRoot.innerHTML = `
     <div class="playerSetting">
-      <h3>Filters</h3>
-      <div>
-          <input class="playerSetting__input js-playerSetting-enableHpf" type="checkbox">high-pass:  
-          <input class="playerSetting__input js-playerSetting-hpfFrequency" type="number" min="10" max="100000" step="10"> Hz
-      </div>
-      <div>
-          <input class="playerSetting__input js-playerSetting-enableLpf" type="checkbox">low-pass:  
-          <input class="playerSetting__input js-playerSetting-lpfFrequency" type="number" min="10" max="100000" step="10"> Hz
-      </div>      
-      <div>
-          <input class="playerSetting__input js-playerSetting-matchFilterFrequencyToSpectrogram" type="checkbox">match to spectrogram frequency range
-      </div>
+      <fieldset data-setting-section="playbackFilters" aria-label="Playback Filters">
+        <div class="playerSetting__row">
+          <label class="playerSetting__checkLabel">
+            <input class="playerSetting__input js-playerSetting-enableHpf" type="checkbox">
+            <span>High-pass filter</span>
+          </label>
+          <label class="playerSetting__valueLabel" for="hpfFrequency">Cutoff frequency
+            <span class="playerSetting__value"><input id="hpfFrequency" class="playerSetting__input js-playerSetting-hpfFrequency" type="number" min="10" max="100000" step="10" aria-label="High-pass cutoff frequency"> Hz</span>
+          </label>
+        </div>
+        <div class="playerSetting__row">
+          <label class="playerSetting__checkLabel">
+            <input class="playerSetting__input js-playerSetting-enableLpf" type="checkbox">
+            <span>Low-pass filter</span>
+          </label>
+          <label class="playerSetting__valueLabel" for="lpfFrequency">Cutoff frequency
+            <span class="playerSetting__value"><input id="lpfFrequency" class="playerSetting__input js-playerSetting-lpfFrequency" type="number" min="10" max="100000" step="10" aria-label="Low-pass cutoff frequency"> Hz</span>
+          </label>
+        </div>
+        <label class="playerSetting__checkLabel playerSetting__matchLabel">
+          <input class="playerSetting__input js-playerSetting-matchFilterFrequencyToSpectrogram" type="checkbox">
+          <span>Match to spectrogram frequency range</span>
+        </label>
+      </fieldset>
     </div>
     `;
 

@@ -1,5 +1,6 @@
 export interface Config {
   autoAnalyze: boolean;
+  filename?: string;
   playerDefault: PlayerDefault;
   analyzeDefault: AnalyzeDefault;
 }

@@ -1,9 +1,71 @@
 .playerSetting {
-  margin: 0.5em;
+  padding: 0;
+}
+
+.playerSetting fieldset {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.playerSetting__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  border-top: 1px solid var(--panel-border);
+}
+
+.playerSetting__checkLabel,
+.playerSetting__valueLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.playerSetting__valueLabel {
+  justify-content: space-between;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.playerSetting__checkLabel {
+  color: var(--vscode-foreground);
+  font-size: 12px;
+}
+
+.playerSetting__value {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 5px;
+  color: var(--vscode-foreground);
 }
 
 .playerSetting__input {
   width: auto;
   display: inline-block;
-  margin: 0.5em;
+}
+
+.playerSetting__value .playerSetting__input {
+  width: 96px;
+}
+
+.playerSetting__matchLabel {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--panel-border);
+}
+
+@media (max-width: 520px) {
+  .playerSetting__row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .playerSetting__valueLabel {
+    align-items: center;
+  }
 }

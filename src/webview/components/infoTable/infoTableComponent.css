@@ -1,10 +1,58 @@
 .infoTable {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 0.9fr) minmax(0, 1.1fr));
+  column-gap: 12px;
   width: 100%;
-  padding: 0.5em;
-  border-collapse: collapse;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--card-radius);
+  padding: 12px 20px 14px;
+  background: var(--panel-background);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.infoTable > tbody {
+  display: contents;
+}
+
+.infoTableRow {
+  display: contents;
+}
+
+.infoTable caption {
+  padding: 2px 0 10px;
+  color: var(--vscode-foreground);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  grid-column: 1 / -1;
 }
 
 .infoTableData {
-  border: solid 1px var(--vscode-foreground);
-  padding: 0.5em;
+  min-width: 0;
+  border-top: 1px solid var(--panel-border);
+  padding: 9px 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.infoTable th {
+  width: 45%;
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.infoTable td {
+  color: var(--vscode-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 520px) {
+  .infoTable {
+    padding-inline: 16px;
+  }
+
+  .infoTable th {
+    width: 50%;
+  }
 }

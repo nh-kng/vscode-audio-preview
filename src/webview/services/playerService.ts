@@ -1,4 +1,4 @@
-import { EventType } from "../events";
+import { DisposableEventListener, EventType } from "../events";
 import Service from "../service";
 import PlayerSettingsService from "./playerSettingsService";
 
@@ -17,6 +17,10 @@ export default class PlayerService extends Service {
   }
   public get currentSec() {
     return this._currentSec;
+  }
+
+  public get duration() {
+    return this._audioBuffer.duration;
   }
 
   private _gainNode: GainNode;
@@ -71,25 +75,43 @@ export default class PlayerService extends Service {
         this.play();
       }
     };
-    this._playerSettingsService.addEventListener(
-      EventType.PS_UPDATE_ENABLE_HPF,
-      applyFilters,
+    this._register(
+      new DisposableEventListener(
+        this._playerSettingsService,
+        EventType.PS_UPDATE_ENABLE_HPF,
+        applyFilters,
+      ),
     );
-    this._playerSettingsService.addEventListener(
-      EventType.PS_UPDATE_HPF_FREQUENCY,
-      applyFilters,
+    this._register(
+      new DisposableEventListener(
+        this._playerSettingsService,
+        EventType.PS_UPDATE_HPF_FREQUENCY,
+        applyFilters,
+      ),
     );
-    this._playerSettingsService.addEventListener(
-      EventType.PS_UPDATE_ENABLE_LPF,
-      applyFilters,
+    this._register(
+      new DisposableEventListener(
+        this._playerSettingsService,
+        EventType.PS_UPDATE_ENABLE_LPF,
+        applyFilters,
+      ),
     );
-    this._playerSettingsService.addEventListener(
-      EventType.PS_UPDATE_LPF_FREQUENCY,
-      applyFilters,
+    this._register(
+      new DisposableEventListener(
+        this._playerSettingsService,
+        EventType.PS_UPDATE_LPF_FREQUENCY,
+        applyFilters,
+      ),
     );
   }
 
   public play() {
+    if (this._audioBuffer.duration <= 0) {
+      return;
+    }
+    if (this._currentSec >= this._audioBuffer.duration) {
+      this._currentSec = 0;
+    }
     // connect nodes
     let lastNode = this._gainNode;
 
@@ -133,6 +155,10 @@ export default class PlayerService extends Service {
   }
 
   public pause() {
+    if (!this._isPlaying || !this._source) {
+      this._isPlaying = false;
+      return;
+    }
     // stop seek bar
     cancelAnimationFrame(this._animationFrameID);
 
@@ -183,6 +209,10 @@ export default class PlayerService extends Service {
 
   // seekbar value is 0~100
   public onSeekbarInput(value: number) {
+    const clampedValue = Math.min(
+      100,
+      Math.max(0, Number.isFinite(value) ? value : 0),
+    );
     const resumeRequired = this._isPlaying;
 
     if (this._isPlaying) {
@@ -190,8 +220,8 @@ export default class PlayerService extends Service {
     }
 
     // update seek bar value
-    this._currentSec = (value * this._audioBuffer.duration) / 100;
-    this._seekbarValue = value;
+    this._currentSec = (clampedValue * this._audioBuffer.duration) / 100;
+    this._seekbarValue = clampedValue;
     this.dispatchEvent(
       new CustomEvent(EventType.UPDATE_SEEKBAR, {
         detail: {
@@ -203,6 +233,42 @@ export default class PlayerService extends Service {
 
     // restart from selected place
     if (resumeRequired || this._playerSettingsService.enableSeekToPlay) {
+      this.play();
+    }
+  }
+
+  /** Seek relative to the current playback position without starting paused audio. */
+  public seekBy(seconds: number) {
+    const current = this._isPlaying
+      ? this._currentSec +
+        this._audioContext.currentTime -
+        this._lastStartAcTime
+      : this._currentSec;
+    const target = Math.min(
+      Math.max(current + seconds, 0),
+      this._audioBuffer.duration,
+    );
+    const resumeRequired = this._isPlaying;
+
+    if (this._isPlaying) {
+      this.pause();
+    }
+
+    this._currentSec = target;
+    this._seekbarValue =
+      this._audioBuffer.duration === 0
+        ? 0
+        : (100 * target) / this._audioBuffer.duration;
+    this.dispatchEvent(
+      new CustomEvent(EventType.UPDATE_SEEKBAR, {
+        detail: {
+          value: this._seekbarValue,
+          pos: this._currentSec,
+        },
+      }),
+    );
+
+    if (resumeRequired && target < this._audioBuffer.duration) {
       this.play();
     }
   }

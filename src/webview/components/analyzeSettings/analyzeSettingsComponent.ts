@@ -7,46 +7,55 @@ import AnalyzeSettingsService, {
 } from "../../services/analyzeSettingsService";
 
 export default class AnalyzeSettingsComponent extends Component {
+  private _mountRoot: HTMLElement;
   private _componentRoot: HTMLElement;
   private _analyzeService: AnalyzeService;
   private _analyzeSettingsService: AnalyzeSettingsService;
+  private _themeObserver?: MutationObserver;
+  private _renderedSettings?: AnalyzeSettingsProps;
 
   constructor(
     componentRootSelector: string,
     analyzeService: AnalyzeService,
     analyzeSettingsService: AnalyzeSettingsService,
+    queryRoot?: HTMLElement,
   ) {
     super();
-    this._componentRoot = document.querySelector(componentRootSelector);
+    this._mountRoot = document.querySelector(componentRootSelector);
+    this._componentRoot = queryRoot || this._mountRoot;
     this._analyzeService = analyzeService;
     this._analyzeSettingsService = analyzeSettingsService;
 
-    this._componentRoot.innerHTML = `
+    this._mountRoot.innerHTML = `
     <div class="analyzeSetting">
-      <h3>Common Settings</h3>
-      <div>
-          time range:
-          <input class="analyzeSetting__input js-analyzeSetting-minTime" type="number" step="0.1">s ~
-          <input class="analyzeSetting__input js-analyzeSetting-maxTime" type="number" step="0.1">s
-      </div>
+      <fieldset data-setting-section="analysis" aria-label="Analysis">
+        <div class="analyzeSetting__row analyzeSetting__rangeRow">
+          <label for="minTime">Start time <span><input id="minTime" class="analyzeSetting__input js-analyzeSetting-minTime" type="number" step="0.1" aria-label="Analysis start time"> s</span></label>
+          <span aria-hidden="true">to</span>
+          <label for="maxTime">End time <span><input id="maxTime" class="analyzeSetting__input js-analyzeSetting-maxTime" type="number" step="0.1" aria-label="Analysis end time"> s</span></label>
+        </div>
+      </fieldset>
 
-      <h3>WaveForm Settings</h3>
-      <div>
-          <input class="js-analyzeSetting-waveformVisible" type="checkbox">visible
-      </div>
-      <div>
-          waveform amplitude range:
-          <input class="analyzeSetting__input js-analyzeSetting-minAmplitude" type="number" step="0.1"> ~
-          <input class="analyzeSetting__input js-analyzeSetting-maxAmplitude" type="number" step="0.1">
-      </div>
+      <fieldset data-setting-section="waveform" aria-label="Waveform">
+        <label class="analyzeSetting__checkLabel">
+          <input class="js-analyzeSetting-waveformVisible" type="checkbox">
+          <span>Show waveform</span>
+        </label>
+        <div class="analyzeSetting__row">
+          <label for="minAmplitude">Amplitude range
+            <span><input id="minAmplitude" class="analyzeSetting__input js-analyzeSetting-minAmplitude" type="number" step="0.1" aria-label="Minimum waveform amplitude"> to <input id="maxAmplitude" class="analyzeSetting__input js-analyzeSetting-maxAmplitude" type="number" step="0.1" aria-label="Maximum waveform amplitude"></span>
+          </label>
+        </div>
+      </fieldset>
 
-      <h3>Spectrogram Settings</h3>
-      <div>
-          <input class="js-analyzeSetting-spectrogramVisible" type="checkbox">visible
-      </div>
-      <div>
-          window size:
-          <select class="analyzeSetting__select js-analyzeSetting-windowSize">
+      <fieldset data-setting-section="spectrogram" aria-label="Spectrogram">
+        <label class="analyzeSetting__checkLabel">
+          <input class="js-analyzeSetting-spectrogramVisible" type="checkbox">
+          <span>Show spectrogram</span>
+        </label>
+        <div class="analyzeSetting__row">
+          <label for="windowSize">Window size
+            <select id="windowSize" class="analyzeSetting__select js-analyzeSetting-windowSize" aria-label="Spectrogram window size">
               <option value="0">256</option>
               <option value="1">512</option>
               <option value="2">1024</option>
@@ -55,38 +64,58 @@ export default class AnalyzeSettingsComponent extends Component {
               <option value="5">8192</option>
               <option value="6">16384</option>
               <option value="7">32768</option>
-          </select>
-      </div>
-      <div>
-          frequency scale:
-          <select class="analyzeSetting__select js-analyzeSetting-frequencyScale">
+            </select>
+          </label>
+          <label for="frequencyScale">Frequency scale
+            <select id="frequencyScale" class="analyzeSetting__select js-analyzeSetting-frequencyScale" aria-label="Spectrogram frequency scale">
               <option value="0">Linear</option>
               <option value="1">Log</option>
               <option value="2">Mel</option>
-          </select>
-          mel filter num:
-          <input class="analyzeSetting__input js-analyzeSetting-melFilterNum" type="number" step="10">
-      </div>
-      <div>
-          frequency range:
-          <input class="analyzeSetting__input js-analyzeSetting-minFrequency" type="number" step="1000">Hz ~
-          <input class="analyzeSetting__input js-analyzeSetting-maxFrequency" type="number" step="1000">Hz
-      </div>
-      <div>
-          <div>
-              spectrogram amplitude range:
-              <input class="analyzeSetting__input js-analyzeSetting-spectrogramAmplitudeRange" type="number" step="10">dB ~ 0 dB
-          </div>
-          <div>
-              color:
-              <canvas class="analyzeSetting__canvas js-analyzeSetting-spectrogramColorAxis" width="800px" height="40px"></canvas>
-              <canvas class="analyzeSetting__canvas js-analyzeSetting-spectrogramColor" width="100px" height="5px"></canvas>
-          </div>
-      </div>
+            </select>
+          </label>
+        </div>
+        <div class="analyzeSetting__row">
+          <label for="melFilterNum">Mel filter count
+            <input id="melFilterNum" class="analyzeSetting__input js-analyzeSetting-melFilterNum" type="number" step="10">
+          </label>
+          <span></span>
+        </div>
+        <div class="analyzeSetting__row">
+          <label for="minFrequency">Frequency range
+            <span><input id="minFrequency" class="analyzeSetting__input js-analyzeSetting-minFrequency" type="number" step="1000" aria-label="Minimum frequency"> to <input id="maxFrequency" class="analyzeSetting__input js-analyzeSetting-maxFrequency" type="number" step="1000" aria-label="Maximum frequency"> Hz</span>
+          </label>
+        </div>
+        <div class="analyzeSetting__row">
+          <label for="spectrogramAmplitudeRange">Amplitude range
+            <span><input id="spectrogramAmplitudeRange" class="analyzeSetting__input js-analyzeSetting-spectrogramAmplitudeRange" type="number" step="10"> dB to 0 dB</span>
+          </label>
+        </div>
+        <div class="analyzeSetting__color">
+          <span>Color scale</span>
+          <canvas class="analyzeSetting__canvas js-analyzeSetting-spectrogramColorAxis" width="800" height="40" aria-label="Spectrogram color scale"></canvas>
+          <canvas class="analyzeSetting__canvas js-analyzeSetting-spectrogramColor" width="100" height="5" aria-hidden="true"></canvas>
+        </div>
+      </fieldset>
     </div>
     `;
 
     this.initAnalyzerSettingUI();
+    this._addEventlistener(this._analyzeService, EventType.ANALYZE, () => {
+      this._renderedSettings = this._analyzeSettingsService.toProps();
+    });
+    this._themeObserver = new MutationObserver(() =>
+      this.updateColorBar(
+        this._renderedSettings || this._analyzeSettingsService.toProps(),
+      ),
+    );
+    this._themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
+    this._themeObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class", "style"],
+    });
   }
 
   private initAnalyzerSettingUI() {
@@ -313,7 +342,10 @@ export default class AnalyzeSettingsComponent extends Component {
     );
     // draw axis label
     colorAxisContext.font = `15px Arial`;
-    colorAxisContext.fillStyle = "white";
+    colorAxisContext.fillStyle =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--vscode-foreground")
+        .trim() || "#cccccc";
     for (let i = 0; i < 10; i++) {
       const amp = (i * settings.spectrogramAmplitudeRange) / 10;
       const x = (i * colorAxisCanvas.width) / 10;
@@ -329,5 +361,10 @@ export default class AnalyzeSettingsComponent extends Component {
       );
       colorContext.fillRect(x, 0, colorCanvas.width / 100, colorCanvas.height);
     }
+  }
+
+  public dispose() {
+    this._themeObserver?.disconnect();
+    super.dispose();
   }
 }

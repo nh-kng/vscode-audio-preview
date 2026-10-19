@@ -7,6 +7,9 @@ export default class InfoTableComponent {
     const parent = document.querySelector(componentRootSelector);
     this._infoTable = document.createElement("table");
     this._infoTable.classList.add("infoTable");
+    this._infoTable.setAttribute("aria-label", "Audio metadata");
+    const caption = this._infoTable.createCaption();
+    caption.textContent = "Audio metadata";
     parent.appendChild(this._infoTable);
   }
 
@@ -50,9 +53,12 @@ export default class InfoTableComponent {
     const tr = document.createElement("tr");
     tr.classList.add("infoTableRow");
 
-    const nameTd = document.createElement("td");
+    const nameTd = document.createElement("th");
+    nameTd.scope = "row";
     nameTd.classList.add("infoTableData");
-    nameTd.textContent = name;
+    nameTd.textContent = name
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (character) => character.toUpperCase());
     tr.appendChild(nameTd);
 
     const valueTd = document.createElement("td");

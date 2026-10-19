@@ -1,7 +1,84 @@
 .easyCut {
-  padding: 0.5em;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--control-radius);
+  padding: 10px 12px;
+  color: var(--vscode-foreground);
+  background: var(--panel-background);
+}
+
+.easyCut[hidden] {
+  display: none;
+}
+
+.easyCut__summary {
+  min-width: 0;
+  flex: 1 1 240px;
+  overflow-wrap: anywhere;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.easyCut__filename {
+  display: flex;
+  flex: 1 1 240px;
+  min-width: min(240px, 100%);
+  flex-direction: column;
+  gap: 3px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+
+.easyCut__filenameInput {
+  width: 100%;
+  min-height: 30px !important;
+  font-size: 12px;
+}
+
+.easyCut__actions {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+  gap: 8px;
 }
 
 .easyCut__button {
-  margin-top: 0.5em;
+  width: auto;
+  min-height: 28px;
+  padding: 4px 10px;
+}
+
+.easyCut__button--clear {
+  border-color: var(--panel-border);
+}
+
+@media (max-width: 520px) {
+  .easyCut {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .easyCut__summary {
+    flex: 0 1 auto;
+  }
+
+  .easyCut__filename {
+    flex: 0 1 auto;
+    width: 100%;
+  }
+
+  .easyCut__actions {
+    width: 100%;
+  }
+
+  .easyCut__button {
+    flex: 1 1 0;
+  }
 }

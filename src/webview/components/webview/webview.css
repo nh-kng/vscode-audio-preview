@@ -1,15 +1,141 @@
 #root {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5em;
+  width: min(100%, 1280px);
+  margin: 0 auto;
 }
 
+.appShell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.appHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding: 2px 0;
+}
+
+.appHeader__title {
+  flex: 0 1 260px;
+  min-width: 0;
+}
+
+.appHeader h1 {
+  margin: 0;
+  color: var(--vscode-foreground);
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.appHeader__filename {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#infoTable {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+#infoTable .infoTable {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+#infoTable .infoTable caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+#infoTable .infoTableData {
+  border: 0;
+  padding: 1px 0 1px 10px;
+  font-size: 11px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#infoTable .infoTable th {
+  width: auto;
+  padding-left: 0;
+  color: var(--muted-foreground);
+}
+
+.inspectorLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+}
+
+#analyzer,
 #settingTab {
-  grid-column-start: 1;
-  grid-column-end: 3;
+  min-width: 0;
 }
 
 #analyzer {
-  grid-column-start: 1;
-  grid-column-end: 3;
+  order: 1;
+}
+
+#settingTab {
+  order: 2;
+}
+
+@media (min-width: 1100px) {
+  .inspectorLayout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+
+  #settingTab {
+    position: sticky;
+    top: 12px;
+  }
+}
+
+@media (max-width: 680px) {
+  .appHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .appHeader__title,
+  #infoTable {
+    align-self: stretch;
+    width: 100%;
+    flex: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .appShell {
+    gap: 10px;
+  }
+
+  #infoTable .infoTableData {
+    padding-left: 6px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  #infoTable .infoTable {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
 }

@@ -15,6 +15,8 @@ export class EventType {
     "update-match-filter-frequency-to-spectrogram";
   // analyzer
   public static readonly ANALYZE = "analyze";
+  // shared selection
+  public static readonly SELECTION_UPDATE = "selection-update";
   // analyzeSettings
   public static readonly AS_UPDATE_WAVEFORM_VISIBLE =
     "as-update-waveform-visible";

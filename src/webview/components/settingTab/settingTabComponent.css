@@ -1,20 +1,122 @@
 .settingTab {
-  border: 1px solid var(--vscode-foreground);
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--card-radius);
+  background: var(--panel-background);
 }
 
-.settingTab__menu {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-  gap: 0.5em;
-  margin: 0.5em;
+.settingTab__summary,
+.settingTab__section > summary {
+  cursor: pointer;
+  list-style: none;
 }
 
-.settingTab__button {
-  background: none;
+.settingTab__summary::-webkit-details-marker,
+.settingTab__section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.settingTab__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  padding: 8px 12px;
   color: var(--vscode-foreground);
-  border: 1px solid var(--vscode-foreground);
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.settingTab__button--active {
-  background: var(--vscode-button-background);
+.settingTab__summary::before,
+.settingTab__section > summary::before {
+  content: "›";
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--muted-foreground);
+  transition: transform 150ms;
+}
+
+.settingTab[open] > .settingTab__summary::before,
+.settingTab__section[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.settingTab__summary > span:first-child {
+  margin-right: auto;
+}
+
+.settingTab__content {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--panel-border);
+  padding: 10px 12px 12px;
+}
+
+.settingTab__section {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--control-radius);
+  background: color-mix(in srgb, var(--vscode-foreground) 2%, transparent);
+}
+
+.settingTab__section > summary {
+  padding: 8px 10px;
+  color: var(--vscode-foreground);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.settingTab__section > div {
+  border-top: 1px solid var(--panel-border);
+  padding: 10px;
+}
+
+.settingTab input:not([type="checkbox"]),
+.settingTab select,
+.settingTab button {
+  min-height: 28px;
+}
+
+.settingTab input:not([type="checkbox"]),
+.settingTab select {
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+@media (min-width: 1100px) {
+  .settingTab .playerSetting__row,
+  .settingTab .analyzeSetting__row,
+  .settingTab .analyzeSetting__rangeRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .settingTab .analyzeSetting__rangeRow > span {
+    display: none;
+  }
+
+  .settingTab .analyzeSetting label {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .settingTab .analyzeSetting__input,
+  .settingTab .analyzeSetting__select {
+    width: 100%;
+  }
+
+  .settingTab .analyzeSetting label > span {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .settingTab .analyzeSetting label > span input {
+    min-width: 0;
+    flex: 1 1 100px;
+    width: auto;
+  }
 }

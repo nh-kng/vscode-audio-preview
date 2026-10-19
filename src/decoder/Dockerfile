@@ -1,10 +1,15 @@
-#https://hub.docker.com/r/emscripten/emsdk/tags
-FROM emscripten/emsdk:3.1.17 as build 
+# https://hub.docker.com/r/emscripten/emsdk/tags
+# The pinned Emscripten image is published for linux/amd64. The decoder build
+# script supplies --platform=linux/amd64 for Docker Desktop on Apple Silicon.
+FROM emscripten/emsdk:3.1.17 AS build
 
 ARG FFMPEG_VERSION=4.3.2
 ARG PREFIX=/opt/ffmpeg
 ARG LIBOPUS_VER=1.3.1
 ARG LIBMP3LAME_VER=3.100
+# Keep the native builds bounded. Override with --build-arg MAKE_JOBS=1 when
+# Docker Desktop has limited memory.
+ARG MAKE_JOBS=2
 
 # Build dependencies.
 RUN apt-get update && apt-get install -y autoconf libtool build-essential
@@ -28,7 +33,7 @@ RUN cd /tmp/opus && \
 	--disable-hardening \
 	--disable-stack-protector \
 	&& \
-	emmake make -j && \
+	emmake make -j${MAKE_JOBS} && \
 	emmake make install
 
 # Download ffmpeg release source.
@@ -62,7 +67,7 @@ RUN cd /tmp/ffmpeg-${FFMPEG_VERSION} && \
   --extra-cxxflags="$CFLAGS" \
   --extra-ldflags="$LDFLAGS" \
   && \
-  emmake make -j && \
+  emmake make -j${MAKE_JOBS} && \
   emmake make install
 
 COPY ./decoder.cpp /build/src/decoder.cpp

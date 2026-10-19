@@ -71,6 +71,10 @@ const webviewConfig = {
         test: /\.css$/,
         use: ["style-loader", "css-loader"],
       },
+      {
+        test: /\.svg$/,
+        type: "asset/source",
+      },
     ],
   },
   plugins: [
@@ -78,6 +82,14 @@ const webviewConfig = {
       process: "process/browser", // provide a shim for the global `process` variable
     }),
   ],
+  // The decoder is an intentionally embedded SINGLE_FILE WebAssembly module.
+  // Keep this budget scoped to the webview bundle so other bundles retain
+  // webpack's useful default performance warnings.
+  performance: {
+    hints: "warning",
+    maxAssetSize: 2 * 1024 * 1024,
+    maxEntrypointSize: 2 * 1024 * 1024,
+  },
 };
 
 const webExtensionConfig = {

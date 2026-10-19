@@ -5,6 +5,13 @@ import {
   AnalyzeSettingsProps,
 } from "../../services/analyzeSettingsService";
 
+function themeColor(name: string, fallback: string): string {
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue(name).trim() ||
+    fallback
+  );
+}
+
 export default class WaveFormComponent {
   private _analyzeService: AnalyzeService;
 
@@ -68,6 +75,8 @@ export default class WaveFormComponent {
 
     // draw vertical axis
     const axisContext = axisCanvas.getContext("2d");
+    const axisText = themeColor("--vscode-foreground", "#cccccc");
+    const axisGrid = themeColor("--vscode-panel-border", "#555555");
     const width = axisCanvas.width;
     const height = axisCanvas.height;
     axisContext.font = `20px Arial`;
@@ -77,12 +86,12 @@ export default class WaveFormComponent {
     const scale = (maxFreq - minFreq) / height;
     const numAxes = Math.round(10 * settings.spectrogramVerticalScale);
     for (let i = 0; i < numAxes; i++) {
-      axisContext.fillStyle = "rgb(245,130,32)";
+      axisContext.fillStyle = axisText;
       const freq = minFreq + (i * (maxFreq - minFreq)) / numAxes;
       const y = height - (freq - minFreq) / scale;
       axisContext.fillText(`${Math.trunc(freq)}`, 4, y - 4);
 
-      axisContext.fillStyle = "rgb(180,120,20)";
+      axisContext.fillStyle = axisGrid;
       for (let j = 0; j < width; j++) {
         axisContext.fillRect(j, y, 2, 2);
       }
@@ -132,6 +141,8 @@ export default class WaveFormComponent {
 
     // draw vertical axis
     const axisContext = axisCanvas.getContext("2d");
+    const axisText = themeColor("--vscode-foreground", "#cccccc");
+    const axisGrid = themeColor("--vscode-panel-border", "#555555");
     const width = axisCanvas.width;
     const height = axisCanvas.height;
     axisContext.font = `20px Arial`;
@@ -141,7 +152,7 @@ export default class WaveFormComponent {
     const scale = (logMax - logMin) / height;
     const numAxes = Math.round(10 * settings.spectrogramVerticalScale);
     for (let i = 0; i < numAxes; i++) {
-      axisContext.fillStyle = "rgb(245,130,32)";
+      axisContext.fillStyle = axisText;
 
       // Convert the frequency to the logarithmic scale
       const logFreq = logMin + (i * (logMax - logMin)) / numAxes;
@@ -149,7 +160,7 @@ export default class WaveFormComponent {
       const y = height - (logFreq - logMin) / scale;
       axisContext.fillText(`${Math.trunc(f)}`, 4, y - 4);
 
-      axisContext.fillStyle = "rgb(180,120,20)";
+      axisContext.fillStyle = axisGrid;
       for (let j = 0; j < width; j++) {
         axisContext.fillRect(j, y, 2, 2);
       }
@@ -210,13 +221,15 @@ export default class WaveFormComponent {
 
     // draw vertical axis
     const axisContext = axisCanvas.getContext("2d");
+    const axisText = themeColor("--vscode-foreground", "#cccccc");
+    const axisGrid = themeColor("--vscode-panel-border", "#555555");
     const width = axisCanvas.width;
     const height = axisCanvas.height;
     axisContext.font = `20px Arial`;
 
     const numAxes = Math.round(10 * settings.spectrogramVerticalScale);
     for (let i = 0; i < numAxes; i++) {
-      axisContext.fillStyle = "rgb(245,130,32)";
+      axisContext.fillStyle = axisText;
       const y = Math.round((i * height) / numAxes);
       const maxMel = AnalyzeService.hzToMel(settings.maxFrequency);
       const minMel = AnalyzeService.hzToMel(settings.minFrequency);
@@ -224,7 +237,7 @@ export default class WaveFormComponent {
       const f = AnalyzeService.melToHz(mel);
       axisContext.fillText(`${Math.trunc(f)}`, 4, y - 4);
 
-      axisContext.fillStyle = "rgb(180,120,20)";
+      axisContext.fillStyle = axisGrid;
       for (let j = 0; j < width; j++) {
         axisContext.fillRect(j, y, 2, 2);
       }
@@ -268,6 +281,8 @@ export default class WaveFormComponent {
     settings: AnalyzeSettingsProps,
   ) {
     const axisContext = axisCanvas.getContext("2d");
+    const axisText = themeColor("--vscode-foreground", "#cccccc");
+    const axisGrid = themeColor("--vscode-panel-border", "#555555");
     const width = axisCanvas.width;
     const height = axisCanvas.height;
     axisContext.font = `20px Arial`;
@@ -282,12 +297,12 @@ export default class WaveFormComponent {
       const t = t0 + niceT * i;
       const x = (t - settings.minTime) * dx;
 
-      axisContext.fillStyle = "rgb(245,130,32)";
+      axisContext.fillStyle = axisText;
       if (width * (5 / 100) < x && x < width * (95 / 100)) {
         axisContext.fillText(`${t.toFixed(digit)}`, x, 18);
       } // don't draw near the edge
 
-      axisContext.fillStyle = "rgb(180,120,20)";
+      axisContext.fillStyle = axisGrid;
       for (let j = 0; j < height; j++) {
         axisContext.fillRect(x, j, 1, 1);
       }
@@ -300,6 +315,7 @@ export default class WaveFormComponent {
     numOfCh: number,
   ) {
     const axisContext = axisCanvas.getContext("2d");
+    const axisText = themeColor("--vscode-foreground", "#cccccc");
     axisContext.font = `20px Arial`;
 
     if (numOfCh > 1) {
@@ -310,7 +326,7 @@ export default class WaveFormComponent {
         channelText = "ch" + String(ch + 1);
       }
 
-      axisContext.fillStyle = "rgb(220, 220, 220)";
+      axisContext.fillStyle = axisText;
       axisContext.fillText(channelText, 60, 18);
     }
   }

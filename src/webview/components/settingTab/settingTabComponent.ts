@@ -1,134 +1,85 @@
 import "./settingTabComponent.css";
 import Component from "../../component";
-import { EventType } from "../../events";
 import PlayerSettingsService from "../../services/playerSettingsService";
 import PlayerSettingsComponent from "../playerSettings/playerSettingsComponent";
+import PlayerService from "../../services/playerService";
 import AnalyzeService from "../../services/analyzeService";
 import AnalyzeSettingsService from "../../services/analyzeSettingsService";
 import AnalyzeSettingsComponent from "../analyzeSettings/analyzeSettingsComponent";
-import EasyCutComponent from "../easyCut/easyCutComponent";
-import { PostMessage } from "../../../message";
 
 export default class SettingTab extends Component {
-  private _componentRoot: HTMLElement;
+  private _root: HTMLElement;
+  private _playerSettings?: PlayerSettingsComponent;
+  private _analyzeSettings?: AnalyzeSettingsComponent;
 
   constructor(
-    coponentRootSelector: string,
+    selector: string,
     playerSettingsService: PlayerSettingsService,
     analyzeService: AnalyzeService,
     analyzeSettingsService: AnalyzeSettingsService,
-    audioBuffer: AudioBuffer,
-    postMessage: PostMessage,
+    _audioBuffer?: AudioBuffer,
+    _postMessage?: unknown,
+    playerService?: PlayerService,
   ) {
     super();
-
-    this._componentRoot = document.querySelector(coponentRootSelector);
-
-    this._componentRoot.innerHTML = `
-      <div class="settingTab">
-        <div class="settingTab__menu">
-          <div>Setting</div>
-          <button class="settingTab__button settingTab__button--active js-settingTabButton-hide">hide</button>
-          <button class="settingTab__button js-settingTabButton-player">player</button>
-          <button class="settingTab__button js-settingTabButton-analyze">analyze</button>
-          <button class="settingTab__button js-settingTabButton-easyCut">easyCut</button>
-        </div>
-        <div class="settingTab__content">
-          <div class="js-settingTabContent-player"></div>
-          <div class="js-settingTabContent-analyze"></div>
-          <div class="js-settingTabContent-easyCut"></div>
-        </div>
-      </div>
-    `;
-
-    // hide is default
-    this.hideAllContent();
-
-    // create tab content
-    new PlayerSettingsComponent(
-      `${coponentRootSelector} .js-settingTabContent-player`,
+    void _audioBuffer;
+    void _postMessage;
+    void playerService;
+    this._root = document.querySelector(selector);
+    this._root.innerHTML =
+      '<details class="settingTab">' +
+      '<summary class="settingTab__summary"><span>Settings</span></summary>' +
+      '<div class="settingTab__content">' +
+      '<details class="settingTab__section"><summary>Playback Filters</summary><div class="js-settingTabContent-player"></div></details>' +
+      '<details class="settingTab__section"><summary>Analysis</summary><div class="js-settingTabContent-analyze"></div></details>' +
+      '<details class="settingTab__section"><summary>Waveform</summary><div class="analyzeSetting js-settingTabContent-waveform"></div></details>' +
+      '<details class="settingTab__section"><summary>Spectrogram</summary><div class="analyzeSetting js-settingTabContent-spectrogram"></div></details>' +
+      "</div></details>";
+    this._playerSettings = new PlayerSettingsComponent(
+      selector + " .js-settingTabContent-player",
       playerSettingsService,
       analyzeService,
       analyzeSettingsService,
     );
-    new AnalyzeSettingsComponent(
-      `${coponentRootSelector} .js-settingTabContent-analyze`,
+    this._analyzeSettings = new AnalyzeSettingsComponent(
+      selector + " .js-settingTabContent-analyze",
       analyzeService,
       analyzeSettingsService,
+      this._root,
     );
-    new EasyCutComponent(
-      `${coponentRootSelector} .js-settingTabContent-easyCut`,
-      audioBuffer,
-      analyzeSettingsService,
-      postMessage,
-    );
-
-    // hide tab event
-    const hideTabButton = this._componentRoot.querySelector(
-      ".js-settingTabButton-hide",
-    ) as HTMLButtonElement;
-    this._addEventlistener(hideTabButton, EventType.CLICK, () => {
-      this.hideAllContent();
-      this.resetActivebutton();
-      hideTabButton.classList.add("settingTab__button--active");
-    });
-
-    // player tab event
-    const playerTabButton = this._componentRoot.querySelector(
-      ".js-settingTabButton-player",
-    ) as HTMLButtonElement;
-    this._addEventlistener(playerTabButton, EventType.CLICK, () => {
-      this.hideAllContent();
-      this.resetActivebutton();
-      const playerTabContent = this._componentRoot.querySelector(
-        ".js-settingTabContent-player",
-      ) as HTMLElement;
-      playerTabContent.style.display = "block";
-      playerTabButton.classList.add("settingTab__button--active");
-    });
-
-    // analyze tab event
-    const analyzeTabButton = this._componentRoot.querySelector(
-      ".js-settingTabButton-analyze",
-    ) as HTMLButtonElement;
-    this._addEventlistener(analyzeTabButton, EventType.CLICK, () => {
-      this.hideAllContent();
-      this.resetActivebutton();
-      const analyzeTabContent = this._componentRoot.querySelector(
-        ".js-settingTabContent-analyze",
-      ) as HTMLElement;
-      analyzeTabContent.style.display = "block";
-      analyzeTabButton.classList.add("settingTab__button--active");
-    });
-
-    // easyCut tab event
-    const easyCutTabButton = this._componentRoot.querySelector(
-      ".js-settingTabButton-easyCut",
-    ) as HTMLButtonElement;
-    this._addEventlistener(easyCutTabButton, EventType.CLICK, () => {
-      this.hideAllContent();
-      this.resetActivebutton();
-      const easyCutTabContent = this._componentRoot.querySelector(
-        ".js-settingTabContent-easyCut",
-      ) as HTMLElement;
-      easyCutTabContent.style.display = "block";
-      easyCutTabButton.classList.add("settingTab__button--active");
-    });
+    this.moveAnalysisFieldsets();
+    this._register(this._playerSettings);
+    this._register(this._analyzeSettings);
   }
 
-  private resetActivebutton() {
-    const activeButton = this._componentRoot.querySelector(
-      ".settingTab__button--active",
-    ) as HTMLButtonElement;
-    activeButton.classList.remove("settingTab__button--active");
-  }
-
-  private hideAllContent() {
-    const content = this._componentRoot.querySelector(
-      ".settingTab__content",
-    ) as HTMLElement;
-    for (const c of content.children) {
-      (c as HTMLElement).style.display = "none";
+  private moveAnalysisFieldsets() {
+    const analysisRoot = this._root.querySelector(
+      ".js-settingTabContent-analyze",
+    );
+    const waveformRoot = this._root.querySelector(
+      ".js-settingTabContent-waveform",
+    );
+    const spectrogramRoot = this._root.querySelector(
+      ".js-settingTabContent-spectrogram",
+    );
+    if (!analysisRoot || !waveformRoot || !spectrogramRoot) {
+      return;
     }
+    for (const fieldset of Array.from(
+      analysisRoot.querySelectorAll("fieldset[data-setting-section]"),
+    )) {
+      const section = fieldset.getAttribute("data-setting-section");
+      if (section === "waveform") {
+        waveformRoot.appendChild(fieldset);
+      } else if (section === "spectrogram") {
+        spectrogramRoot.appendChild(fieldset);
+      }
+    }
+  }
+
+  public dispose() {
+    this._playerSettings = undefined;
+    this._analyzeSettings = undefined;
+    super.dispose();
   }
 }

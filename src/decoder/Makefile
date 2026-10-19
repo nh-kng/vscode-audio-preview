@@ -1,4 +1,12 @@
-decoder.wasm.js:
+OUTPUT := wasm/decoder.js
+
+.PHONY: all FORCE
+.DELETE_ON_ERROR:
+
+all: $(OUTPUT)
+
+$(OUTPUT): FORCE decoder.cpp
+	@mkdir -p $(dir $@)
 	em++ -Wall \
 	-L/opt/ffmpeg/lib -L/opt/ffmpeg/lib/opus \
 	-I/opt/ffmpeg/include/ -I/opt/ffmpeg/include/opus \
@@ -15,8 +23,10 @@ decoder.wasm.js:
 	-s MODULARIZE=1 \
 	-s FORCE_FILESYSTEM=1 \
 	-s SINGLE_FILE=1 \
-	-s EXPORTED_RUNTIME_METHODS=['FS'] \
+	-s 'EXPORTED_RUNTIME_METHODS=["FS"]' \
 	-s NO_DYNAMIC_EXECUTION=1 \
 	-lembind \
-	-o ./wasm/decoder.js \
+	-o $@ \
 	decoder.cpp
+
+FORCE:

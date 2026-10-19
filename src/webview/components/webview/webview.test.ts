@@ -48,6 +48,14 @@ describe("webview", () => {
       );
     });
     expect(msg.type).toBe(WebviewMessageType.CONFIG);
+    expect(document.querySelector(".appHeader h1")?.textContent).toBe(
+      "Audio Analysis",
+    );
+    expect(document.querySelector(".appHeader__filename")?.textContent).toBe(
+      "Waveform & Spectrogram Viewer",
+    );
+    expect(document.querySelector(".appHeader + #player")).toBeTruthy();
+    expect(document.querySelector("#player .appHeader")).toBeNull();
   });
 
   test("request data after getting config", async () => {
@@ -56,6 +64,7 @@ describe("webview", () => {
         type: ExtMessageType.CONFIG,
         data: {
           autoAnalyze: false,
+          filename: "demo.wav",
           playerDefault: {
             volumeUnitDb: undefined,
             initialVolumeDb: 0.0,
@@ -89,6 +98,12 @@ describe("webview", () => {
       type: WebviewMessageType.DATA,
       data: { start: 0, end: 500000 },
     });
+    expect(document.querySelector(".appHeader h1")?.textContent).toBe(
+      "Audio Analysis",
+    );
+    expect(document.querySelector(".appHeader__filename")?.textContent).toBe(
+      "demo.wav",
+    );
   });
 
   test("request next data after getting data", async () => {

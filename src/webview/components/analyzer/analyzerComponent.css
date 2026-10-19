@@ -1,9 +1,108 @@
 .analyzerComponent {
-  border: 1px solid var(--vscode-foreground);
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--card-radius);
+  background: var(--panel-background);
+}
+
+.analyzerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.analyzerHeader h2 {
+  margin: 0;
+  color: var(--vscode-foreground);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.analyzeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  min-width: 128px;
+}
+
+.actionIcon {
+  font-size: 16px;
+}
+
+.analyzerEmptyState {
+  display: block;
+  margin: 20px;
+  padding: 32px 20px;
+  border: 1px dashed var(--panel-border);
+  border-radius: var(--control-radius);
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.analyzerEmptyStateTitle,
+.analyzerEmptyStateDescription {
+  display: block;
+}
+
+.analyzerEmptyStateTitle {
+  margin-bottom: 6px;
+  color: var(--vscode-foreground);
+  font-size: 14px;
+}
+
+.analyzerEmptyStateDescription {
+  font-size: 12px;
 }
 
 .analyzeResultBox {
   position: relative;
-  margin: 0.5em;
+  margin: 20px;
   display: none;
+}
+
+.analyzerGroup {
+  margin: 0 0 24px;
+}
+
+.analyzerGroupTitle {
+  margin: 0 0 8px;
+  color: var(--vscode-foreground);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.analyzeFigure {
+  margin: 0 0 16px;
+}
+
+.figureLabel {
+  margin-bottom: 6px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.selectionActionsRoot {
+  margin: 0 20px 20px;
+}
+
+@media (max-width: 520px) {
+  .analyzerHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .analyzeButton {
+    width: 100%;
+  }
+
+  .analyzeResultBox {
+    margin-inline: 16px;
+    padding-inline: 0;
+  }
 }

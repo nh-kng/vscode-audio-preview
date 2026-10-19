@@ -17,6 +17,7 @@ import InfoTableComponent from "../infoTable/infoTableComponent";
 import PlayerComponent from "../player/playerComponent";
 import SettingTab from "../settingTab/settingTabComponent";
 import AnalyzerComponent from "../analyzer/analyzerComponent";
+import AudioSelectionService from "../../services/audioSelectionService";
 
 type CreateAudioContext = (sampleRate: number) => AudioContext;
 type CreateDecoder = (fileData: Uint8Array) => Promise<Decoder>;
@@ -29,6 +30,7 @@ export default class WebView extends Component {
   private _createDecoder: CreateDecoder;
 
   private _config: Config;
+  private _selectionService?: AudioSelectionService;
 
   constructor(
     postMessage: PostMessage,
@@ -53,12 +55,12 @@ export default class WebView extends Component {
     );
 
     const root = document.getElementById("root");
-    root.innerHTML = `
-      <div id="infoTable"></div>
-      <div id="player"></div>
-      <div id="settingTab"></div>
-      <div id="analyzer"></div>
-    `;
+    root.innerHTML =
+      '<div class="appShell"><header class="appHeader">' +
+      '<div class="appHeader__title"><h1>Audio Analysis</h1><div class="appHeader__filename">Waveform & Spectrogram Viewer</div></div>' +
+      '<div id="infoTable"></div></header>' +
+      '<div id="player"></div><div class="inspectorLayout">' +
+      '<main id="analyzer"></main><aside id="settingTab"></aside></div></div>';
 
     this._postMessage({ type: WebviewMessageType.CONFIG });
   }
@@ -68,7 +70,11 @@ export default class WebView extends Component {
       case ExtMessageType.CONFIG:
         if (ExtMessageType.isCONFIG(msg)) {
           this._config = msg.data;
-          console.log(msg.data);
+          const filename = document.querySelector(".appHeader__filename");
+          if (filename) {
+            filename.textContent =
+              msg.data.filename || "Waveform & Spectrogram Viewer";
+          }
           this._postMessage({
             type: WebviewMessageType.DATA,
             data: { start: 0, end: 500000 },
@@ -163,10 +169,12 @@ export default class WebView extends Component {
       audioBuffer,
       playerSettingsService,
     );
+    this._selectionService = new AudioSelectionService(decoder.duration);
     const playerComponent = new PlayerComponent(
       "#player",
       playerService,
       playerSettingsService,
+      this._config.filename,
     );
     this._disposables.push(playerService, playerComponent);
 
@@ -183,6 +191,7 @@ export default class WebView extends Component {
       analyzeSettingsService,
       audioBuffer,
       this._postMessage,
+      playerService,
     );
     this._disposables.push(
       analyzeService,
@@ -198,8 +207,11 @@ export default class WebView extends Component {
       analyzeSettingsService,
       playerService,
       this._config.autoAnalyze,
+      this._postMessage,
+      this._config.filename,
+      this._selectionService,
     );
-    this._disposables.push(analyzerComponent);
+    this._disposables.push(analyzerComponent, this._selectionService);
 
     // dispose decoder
     decoder.dispose();

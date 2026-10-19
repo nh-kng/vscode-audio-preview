@@ -85,9 +85,21 @@ VSCode's DevTools can be opened in the following ways.
 
 - Clone this repo
 - Install Dependencies: `npm install`
-- Build Container for decoder: `docker build -t audio-decoder ./src/decoder/`
-- Compile decoder.cpp to wasm: `docker run --rm -v ${pwd}/src/decoder:/build -it audio-decoder make`
+- Build the decoder and its Docker image: `npm run decoder:build`
+- Run the production webpack/package build: `npm run vscode:prepublish`
 - Run Extension: f5
+
+The decoder uses the pinned `emscripten/emsdk:3.1.17` image, which runs as
+`linux/amd64`. Docker Desktop handles the required emulation on Apple Silicon.
+The FFmpeg and libopus builds use two jobs by default to keep memory usage
+bounded. If Docker Desktop still runs out of memory, retry with one job:
+
+```sh
+DECODER_BUILD_JOBS=1 npm run decoder:build
+```
+
+`npm run vscode:prepublish` checks for `src/decoder/wasm/decoder.js` before
+starting webpack and reports the decoder command when it has not been built.
 
 ### Test
 

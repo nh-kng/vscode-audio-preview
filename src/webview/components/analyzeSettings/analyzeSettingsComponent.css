@@ -1,23 +1,108 @@
 .analyzeSetting {
-  margin: 0.5em;
+  display: grid;
+  gap: 20px;
+  padding: 0;
 }
 
-.analyzeSettingButton {
-  background: none;
-  color: var(--vscode-foreground);
+.analyzeSetting fieldset {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-top: 1px solid var(--panel-border);
+  padding: 18px 0 0;
 }
 
-.analyzeSetting__input {
-  width: auto;
-  display: inline-block;
-  margin: 0.5em;
+.analyzeSetting fieldset:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.analyzeSetting__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.analyzeSetting__rangeRow {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+}
+
+.analyzeSetting label {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.analyzeSetting__checkLabel {
+  justify-content: flex-start !important;
+  color: var(--vscode-foreground) !important;
+}
+
+.analyzeSetting__input,
+.analyzeSetting__select {
+  min-width: 0;
+  width: 100px;
+  margin: 0;
 }
 
 .analyzeSetting__select {
-  margin: 0.5em;
+  width: 130px;
+}
+
+.analyzeSetting__color {
+  display: grid;
+  gap: 6px;
+  margin-top: 8px;
+  color: var(--muted-foreground);
+  font-size: 12px;
 }
 
 .analyzeSetting__canvas {
   width: 100%;
-  border: 1px solid var(--vscode-foreground);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--control-radius);
+}
+
+@media (max-width: 680px) {
+  .analyzeSetting__row,
+  .analyzeSetting__rangeRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .analyzeSetting__rangeRow > span {
+    display: none;
+  }
+
+  .analyzeSetting label {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .analyzeSetting__input,
+  .analyzeSetting__select {
+    width: 100%;
+  }
+
+  .analyzeSetting label > span {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .analyzeSetting label > span input {
+    min-width: 0;
+    flex: 1 1 100px;
+    width: auto;
+  }
 }

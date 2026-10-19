@@ -62,6 +62,15 @@ describe("playerSettingsComponent", () => {
     analyzeService.dispose();
     analyzeSettingsService.dispose();
     playerSettingsComponent.dispose();
+    playerSettingsService.dispose();
+  });
+
+  test("renders playback filters without a duplicate inner section title", () => {
+    expect(document.querySelector(".playerSetting legend")).toBeNull();
+    expect(
+      document.querySelector('[data-setting-section="playbackFilters"]'),
+    ).toBeTruthy();
+    expect(document.querySelector(".playerSetting__volumeBar")).toBeNull();
   });
 
   test("enable-hpf should be updated when user change enable-hpf-input", () => {

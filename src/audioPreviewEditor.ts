@@ -163,6 +163,7 @@ export class AudioPreviewEditorProvider
           type: ExtMessageType.CONFIG,
           data: {
             autoAnalyze: config.get("autoAnalyze"),
+            filename: this.getFilename(document.uri),
             playerDefault: config.get("playerDefault") as PlayerDefault,
             analyzeDefault: config.get("analyzeDefault") as AnalyzeDefault,
           },
@@ -201,8 +202,22 @@ export class AudioPreviewEditorProvider
 
       case WebviewMessageType.WRITE_WAV:
         if (WebviewMessageType.isWriteWav(msg)) {
-          const dir = vscode.workspace.getWorkspaceFolder(document.uri);
-          const wavUri = vscode.Uri.joinPath(dir.uri, msg.data.filename);
+          const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+            document.uri,
+          );
+          const defaultUri = workspaceFolder
+            ? vscode.Uri.joinPath(workspaceFolder.uri, msg.data.filename)
+            : document.uri.scheme === "untitled"
+              ? undefined
+              : vscode.Uri.joinPath(document.uri, "..", msg.data.filename);
+          const wavUri = await vscode.window.showSaveDialog({
+            ...(defaultUri ? { defaultUri } : {}),
+            filters: { waveform: ["wav"] },
+            saveLabel: "Export Selection",
+          });
+          if (!wavUri) {
+            break;
+          }
           const content = new Uint8Array(msg.data.samples);
           await vscode.workspace.fs.writeFile(wavUri, content);
           vscode.window.showInformationMessage(
@@ -220,6 +235,15 @@ export class AudioPreviewEditorProvider
 
   private postMessage(webview: vscode.Webview, message: ExtMessage) {
     webview.postMessage(message);
+  }
+
+  private getFilename(uri: vscode.Uri): string | undefined {
+    const path = (uri.path || uri.fsPath).replace(/\\/g, "/");
+    const filename = path.split("/").pop();
+    if (!filename) {
+      return undefined;
+    }
+    return filename;
   }
 
   /**
