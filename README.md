@@ -1,150 +1,82 @@
-# Audio Preview
+# Audio Waveform Preview
 
-You can play your audio file and preview its info on VS Code.  
-You can also check waveform and spectrogram.
+Preview and inspect audio files without leaving VS Code. Audio Waveform Preview includes playback controls, audio metadata, waveform and spectrogram analysis, and tools for selecting and exporting a section of audio.
 
-Supported Audio Files: `wav`, `mp3`, `aac`, `ogg`, `flac`, `opus`, `m4a`, `sph` ... etc.
+[Install Audio Waveform Preview from the Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=nh-kng.audio-waveform-preview)
 
-Available on Marketplace: https://marketplace.visualstudio.com/items?itemName=nh-kng.audio-waveform-preview
-Repository: https://github.com/nh-kng/vscode-audio-preview
+Supported file extensions:
 
-Forked from [sukumo28/vscode-audio-preview](https://github.com/sukumo28/vscode-audio-preview).
-
-> **Note**  
-> Please consider using the built-in audio playback feature as well.
-> When we developed this VS Code extension, VS Code did not bundle ffmpeg and had no audio playback capabilities.
-> However, with updates, a built-in audio playback feature has been added.
-> While this extension has finish its purpose, we will continue to maintain it slowly.
+`wav` · `mp3` · `aac` · `ogg` · `opus` · `flac` · `m4a` · `sph`
 
 ## Features
 
-How to preview audio.  
-![how-to-use](https://github.com/nh-kng/vscode-audio-preview/blob/main/images/how-to-use.gif?raw=true)
+### Playback and metadata
 
-- If you want to display only a specific range of graphs, dragging on the graph will re-run analyze on the selected range.
+- Play and pause audio, seek through the file, and jump backward or forward by five seconds.
+- Adjust the playback volume using a percentage or dB scale.
+- Optionally use the Space key to play and pause, and choose how seeking affects playback.
+- View the encoding, format, channel count, sample rate, file size, and duration.
+- Apply optional high-pass and low-pass filters during playback.
 
-  - By pressing the Ctrl key when dragging, you can select only the time range.
-  - By pressing the Shift key when dragging, you can select only the value range.
+### Waveform and spectrogram analysis
 
-- If you want to return to the original range, right-click on the graph.
+- Render waveform and spectrogram views for each audio channel.
+- Analyze the whole file or a specific time range.
+- Choose a spectrogram frequency scale: linear, logarithmic, or Mel.
+- Adjust the FFT window size, frequency range, amplitude range, and Mel filter count.
+- Show or hide either visualization and adjust their ranges from the Settings panel.
 
-  - Pressing the Ctrl key when right-clicking, reset only the time range.
-  - Pressing the Shift key when right-clicking, reset only the value range.
+### Interactive graphs and WAV export
 
-- If you want to specify the numerical values in detail, you can set the values in the analyze tab found in the settings tab.
+- Click a waveform or spectrogram to seek to that position.
+- Drag across a graph to select a time range. The selection can be cleared or exported as a new WAV file with a custom filename.
+- Hold **Ctrl** while dragging to zoom the time range and reanalyze.
+- Hold **Shift** while dragging to zoom the value range: amplitude on a waveform or frequency on a spectrogram.
+- Right-click a graph to restore its full range. Hold **Ctrl** to reset only time, or **Shift** to reset only amplitude and frequency.
 
-If this extension does not open by default, edit `settings.json` like below.
+![Audio Waveform Preview](images/how-to-use.gif)
 
-```jsonc
-"workbench.editorAssociations": {
-    "*.wav": "wavPreview.audioPreview",
-    "*.mp3": "wavPreview.audioPreview",
-    ...
-},
-```
+## Usage
+
+1. Install the extension from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=nh-kng.audio-waveform-preview).
+2. Open a supported audio file in VS Code. The Audio Preview custom editor opens by default.
+3. If the file opens as text, right-click its editor tab and choose **Reopen Editor With** → **Audio Preview (NH-KNG)**.
+4. Use the playback controls to listen, then select **Analyze audio** to render the waveform and spectrogram. You can enable automatic analysis in the settings below.
+5. Open **Settings** in the preview to adjust playback filters and analysis options. Select part of a graph to export that range as a WAV file.
+
+Audio playback requires a trusted workspace. To use playback, trust the folder when VS Code prompts you.
 
 ## Settings
 
-You can configure these options in `settings.json` or VS Code's GUI.  
-Configuration is completely optional.  
-There is no need to configure anything if you are just using this extension.
-
-You can analyze audio automatically when you open it.
+Configuration is optional. Set these options in VS Code Settings or `settings.json` to control the defaults used when a preview opens:
 
 ```jsonc
-"WavPreview.autoAnalyze": true
-```
-
-You can set the default values for the settings displayed in the settings tab as shown below.  
-To check all items, please refer to [here](https://github.com/nh-kng/vscode-audio-preview/blob/main/src/config.ts).
-
-```jsonc
-"WavPreview.playerDefault": {
-  "initialVolume": 50
+{
+  "WavPreview.autoAnalyze": true,
+  "WavPreview.playerDefault": {
+    "volumeUnitDb": true,
+    "initialVolumeDb": -12,
+    "enableSpacekeyPlay": true,
+    "enableSeekToPlay": true,
+    "enableHpf": false,
+    "enableLpf": false,
+  },
+  "WavPreview.analyzeDefault": {
+    "waveformVisible": true,
+    "spectrogramVisible": true,
+    "windowSizeIndex": 2,
+    "frequencyScale": 1,
+    "spectrogramAmplitudeRange": -90,
+  },
 }
 ```
 
-```jsonc
-"WavPreview.analyzeDefault": {
-  "spectrogramVisible": false
-}
-```
+`frequencyScale` accepts `0` for linear, `1` for logarithmic, and `2` for Mel. `windowSizeIndex` selects FFT windows from 256 through 32768 samples, in powers of two. For the complete list of playback and analysis options, see [`src/config.ts`](https://github.com/nh-kng/vscode-audio-preview/blob/main/src/config.ts).
 
-## Development
+## Links and support
 
-The build and packaging scripts require [Node.js 22 or newer](https://nodejs.org/).
-The decoder build additionally requires Docker Desktop (or another Docker
-installation that can run `linux/amd64` images).
+- [Repository](https://github.com/nh-kng/vscode-audio-preview)
+- [Report an issue or request a feature](https://github.com/nh-kng/vscode-audio-preview/issues)
+- [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=nh-kng.audio-waveform-preview)
 
-### Contributions
-
-Feel free to report Isuues and send Pull Requests on github.
-
-If an error occurs and you create an issue, posting the log displayed in VSCode's DevTools to the issue may be useful for development and fix.  
-VSCode's DevTools can be opened in the following ways.
-
-- Press f12
-- Press shift + ctrl + I
-- Select Help > Toggle Developer Tools from the menu at the top of the screen
-
-### Build
-
-- Clone this repo
-- Install dependencies from the lockfile: `npm ci`
-- Build the decoder and its Docker image: `npm run decoder:build`
-- Build development bundles: `npm run compile`
-- Run Extension: f5
-
-The decoder uses the pinned `emscripten/emsdk:3.1.17` image, which runs as
-`linux/amd64`. Docker Desktop handles the required emulation on Apple Silicon.
-The FFmpeg and libopus builds use two jobs by default to keep memory usage
-bounded. If Docker Desktop still runs out of memory, retry with one job:
-
-```sh
-DECODER_BUILD_JOBS=1 npm run decoder:build
-```
-
-`npm run package` checks for `src/decoder/wasm/decoder.js` before starting the
-production webpack build. The `vscode:prepublish` lifecycle script calls this
-same command automatically when `vsce` packages the extension.
-
-### Package and publish
-
-Create an installable VSIX with the official VS Code Extension Manager:
-
-```sh
-npm run package:vsix
-code --install-extension audio-waveform-preview-2.7.0.vsix
-```
-
-The VSIX filename includes the version from `package.json`. Before updating an
-existing Marketplace listing, increment that version and keep the lockfile in
-sync, for example with `npm version patch --no-git-tag-version`. The
-`publisher` value must belong to the Marketplace account doing the release;
-forks should replace it and update the repository, issue, homepage, and README
-links to match their own project.
-
-The first Marketplace release can be uploaded from the [publisher management
-page](https://marketplace.visualstudio.com/manage/publishers/). For automated
-publishing, follow the [official secure publishing authorization guide](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#secure-automated-publishing-to-visual-studio-marketplace)
-and use Microsoft Entra ID credentials. Global Azure DevOps PATs are scheduled
-for retirement on December 1, 2026.
-
-### Test
-
-`npm run test`  
-This command runs the tests in `src` directory.
-
-### Lint, Format
-
-Linter  
-`npm run lint`
-
-Formatter  
-`npm run format`  
-This is automatically applied upon saving due to the settings in the .vscode/settings.json of this project, so there is generally no need to run it manually.
-
-### References
-
-Custom Editor: https://code.visualstudio.com/api/extension-guides/custom-editors  
-Custom Editor Example: https://github.com/microsoft/vscode-extension-samples/tree/main/custom-editor-sample
+Forked from [sukumo28/vscode-audio-preview](https://github.com/sukumo28/vscode-audio-preview).

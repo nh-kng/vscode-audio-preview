@@ -1,5 +1,23 @@
 # Change Log
 
+## 2.7.0 - 2026-10-19
+
+### Added
+
+- add five-second backward and forward playback controls
+- add draggable selection handles and export selected ranges as WAV files with a custom filename
+
+### Changed
+
+- synchronize selections across waveform and spectrogram views
+- refresh the playback, analysis, settings, and responsive user interface
+- rename the extension to Audio Waveform Preview and update Marketplace and repository metadata
+
+### Fixed
+
+- clamp playback seeking to the audio duration and avoid restarting playback past the end
+- keep dragged selection boundaries within the file and preserve a valid selected range
+
 ## 2.6.0 - 2024-07-15
 
 ### Added
