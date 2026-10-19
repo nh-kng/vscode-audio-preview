@@ -1,12 +1,14 @@
-# audio-preview
+# Audio Preview
 
 You can play your audio file and preview its info on VS Code.  
 You can also check waveform and spectrogram.
 
 Supported Audio Files: `wav`, `mp3`, `aac`, `ogg`, `flac`, `opus`, `m4a`, `sph` ... etc.
 
-Available on Marketplace: https://marketplace.visualstudio.com/items?itemName=sukumo28.wav-preview  
-Repository: https://github.com/sukumo28/vscode-audio-preview
+Available on Marketplace: https://marketplace.visualstudio.com/items?itemName=nh-kng.wav-preview
+Repository: https://github.com/nh-kng/vscode-audio-preview
+
+Forked from [sukumo28/vscode-audio-preview](https://github.com/sukumo28/vscode-audio-preview).
 
 > **Note**  
 > Please consider using the built-in audio playback feature as well.
@@ -17,7 +19,7 @@ Repository: https://github.com/sukumo28/vscode-audio-preview
 ## Features
 
 How to preview audio.  
-![how-to-use](https://github.com/sukumo28/vscode-audio-preview/blob/main/images/how-to-use.gif?raw=true)
+![how-to-use](https://github.com/nh-kng/vscode-audio-preview/blob/main/images/how-to-use.gif?raw=true)
 
 - If you want to display only a specific range of graphs, dragging on the graph will re-run analyze on the selected range.
 
@@ -54,7 +56,7 @@ You can analyze audio automatically when you open it.
 ```
 
 You can set the default values for the settings displayed in the settings tab as shown below.  
-To check all items, please refer to [here](https://github.com/sukumo28/vscode-audio-preview/blob/main/src/config.ts).
+To check all items, please refer to [here](https://github.com/nh-kng/vscode-audio-preview/blob/main/src/config.ts).
 
 ```jsonc
 "WavPreview.playerDefault": {

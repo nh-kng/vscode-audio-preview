@@ -6,7 +6,7 @@
   "engines": {
     "vscode": "^1.59.1"
   },
-  "publisher": "sukumo28",
+  "publisher": "nh-kng",
   "categories": [
     "Other"
   ],
@@ -23,10 +23,10 @@
   "icon": "audio-preview.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sukumo28/vscode-audio-preview.git"
+    "url": "https://github.com/nh-kng/vscode-audio-preview.git"
   },
   "bugs": {
-    "url": "https://github.com/sukumo28/vscode-audio-preview.git"
+    "url": "https://github.com/nh-kng/vscode-audio-preview/issues"
   },
   "activationEvents": [
     "onCustomEditor:wavPreview.audioPreview"
@@ -37,7 +37,7 @@
     "customEditors": [
       {
         "viewType": "wavPreview.audioPreview",
-        "displayName": "Audio Preview",
+        "displayName": "Audio Preview (NH-KNG)",
         "selector": [
           {
             "filenamePattern": "*.wav"
